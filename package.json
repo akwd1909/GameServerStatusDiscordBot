@@ -1,0 +1,8 @@
+{
+  "type": "module",
+  "dependencies": {
+    "discord.js": "^13.1.0",
+    "gamedig": "^3.0.7",
+    "mongodb": "^4.1.0"
+  }
+}

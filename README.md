@@ -6,7 +6,7 @@ An open-source Discord bot that monitors game servers
 
 ### Option 1: Use the public bot instance
 
-Click this link to add the bot to your Discord server: https://discord.com/api/oauth2/authorize?client_id=875818249726595103&permissions=8&scope=bot
+Click this link to add the bot to your Discord server: https://discord.com/api/oauth2/authorize?client_id=875818249726595103&permissions=76864&scope=bot
 
 The public bot currently uses Administrator permissions, but I'm working on making it more secure.
 
@@ -31,7 +31,7 @@ This is an open-source project! Just use the [issue tracker](https://github.com/
 ### TODO
 
 - [x] Basic bot functionality (using message content commands)
-- [ ] Stop using Administrator permissions for the public bot
+- [x] Stop needing Administrator permissions
 - [ ] Implement slash commands
 - [ ] Only use intents/partials we need
 - [ ] Remove database dependency

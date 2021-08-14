@@ -31,7 +31,7 @@ This is an open-source project! Just use the [issue tracker](https://github.com/
 - [x] Basic bot functionality (using message content commands)
 - [x] Stop needing Administrator permissions
 - [ ] Implement slash commands
-- [ ] Only use intents/partials we need
+- [x] Only use intents/partials we need
 - [ ] Remove database dependency
 - [ ] Make embeds more pretty
 - [ ] Add more to the gameData.js file

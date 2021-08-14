@@ -33,13 +33,13 @@ client.on("ready", async () => {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  if (message.guild === null)
-    return message.reply("Commands don't work in DMs!");
-
-  if (message.author.id !== message.guild.ownerId)
-    return message.reply("You need to be the server owner!");
-
   if (message.content.startsWith("!") && !message.content.startsWith("! ")) {
+    if (message.guild === null)
+      return message.reply("Commands don't work in DMs!");
+
+    if (message.author.id !== message.guild.ownerId)
+      return message.reply("You need to be the server owner!");
+
     const commandArray = message.content.substring(1).split(" ");
     const command = commandArray.shift();
     const args = commandArray;

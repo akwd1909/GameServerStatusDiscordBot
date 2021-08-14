@@ -22,45 +22,11 @@ client.login(process.env.DISCORD_TOKEN);
 client.on("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!! 🚀`);
 
-  setInterval(() => {
-    mongocluster
-      .db(process.env.MONGO_DB)
-      .collection("queue")
-      .find({ type: "monitorUpdate" })
-      .toArray()
-      .then((array) =>
-        array.forEach((monitorTask) => {
-          client.channels
-            .fetch(monitorTask.channelId)
-            .then((channel) =>
-              channel.messages
-                .fetch(monitorTask.messageId)
-                .then(async (message) => {
-                  try {
-                    let query = await queryGameServer(
-                      monitorTask.arguments.type,
-                      monitorTask.arguments.host
-                    );
+  updatePresenceWithServerCount();
 
-                    message.edit({
-                      embeds: [
-                        prettyQueryEmbedBuilder(
-                          query,
-                          monitorTask.arguments.type,
-                          monitorTask.arguments.host
-                        ),
-                      ],
-                    });
-                  } catch (error) {
-                    deleteTaskByMessageId(monitorTask.messageId);
-                  }
-                })
-            )
-            .catch((error) => {
-              deleteTaskByMessageId(monitorTask.messageId);
-            });
-        })
-      );
+  setInterval(() => {
+    updatePresenceWithServerCount();
+    monitorQueueHandler();
   }, 60000);
 });
 
@@ -174,6 +140,55 @@ client.on("messageCreate", async (message) => {
 //     `${messageReaction.emoji.name} was added to ${messageReaction.message.id} by ${user.tag}`
 //   );
 // });
+
+function monitorQueueHandler() {
+  mongocluster
+    .db(process.env.MONGO_DB)
+    .collection("queue")
+    .find({ type: "monitorUpdate" })
+    .toArray()
+    .then((array) =>
+      array.forEach((monitorTask) => {
+        client.channels
+          .fetch(monitorTask.channelId)
+          .then((channel) =>
+            channel.messages
+              .fetch(monitorTask.messageId)
+              .then(async (message) => {
+                try {
+                  let query = await queryGameServer(
+                    monitorTask.arguments.type,
+                    monitorTask.arguments.host
+                  );
+
+                  message.edit({
+                    embeds: [
+                      prettyQueryEmbedBuilder(
+                        query,
+                        monitorTask.arguments.type,
+                        monitorTask.arguments.host
+                      ),
+                    ],
+                  });
+                } catch (error) {
+                  deleteTaskByMessageId(monitorTask.messageId);
+                }
+              })
+          )
+          .catch((error) => {
+            deleteTaskByMessageId(monitorTask.messageId);
+          });
+      })
+    );
+}
+
+function updatePresenceWithServerCount() {
+  client.user.setPresence({
+    activities: [
+      { type: "WATCHING", name: `over ${client.guilds.cache.size} servers.` },
+    ],
+  });
+}
 
 function deleteTaskByMessageId(messageId) {
   mongocluster.db(process.env.MONGO_DB).collection("queue").deleteOne({

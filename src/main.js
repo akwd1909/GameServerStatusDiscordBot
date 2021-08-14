@@ -8,8 +8,7 @@ import GameData from "./gameData.js";
 import Mongo from "mongodb";
 
 const client = new DiscordClient({
-  intents: new DiscordIntents([...Object.keys(DiscordIntents.FLAGS)]),
-  partials: ["USER", "CHANNEL", "GUILD_MEMBER", "MESSAGE", "REACTION"],
+  intents: new DiscordIntents(["GUILDS", "GUILD_MESSAGES"]),
 });
 
 const mongocluster = await Mongo.MongoClient.connect(process.env.MONGO_URL, {
@@ -22,12 +21,14 @@ client.login(process.env.DISCORD_TOKEN);
 client.on("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!! 🚀`);
 
+  onWakeup();
+
   updatePresenceWithServerCount();
 
   setInterval(() => {
     updatePresenceWithServerCount();
     monitorQueueHandler();
-  }, 60000);
+  }, 2000);
 });
 
 client.on("messageCreate", async (message) => {
@@ -123,23 +124,28 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-// client.on("messageReactionAdd", async (messageReaction, user) => {
-//   if (messageReaction.message.partial) await messageReaction.message.fetch();
-//   if (user.bot || user.id === messageReaction.message.member.id) return;
-
-//   console.log(
-//     `${messageReaction.emoji.name} was added to ${messageReaction.message.id} by ${user.tag}`
-//   );
-// });
-
-// client.on("messageReactionAdd", async (messageReaction, user) => {
-//   if (messageReaction.message.partial) await messageReaction.message.fetch();
-//   if (user.bot || user.id === messageReaction.message.member.id) return;
-
-//   console.log(
-//     `${messageReaction.emoji.name} was added to ${messageReaction.message.id} by ${user.tag}`
-//   );
-// });
+function onWakeup() {
+  client.application.fetch().then((application) =>
+    application.owner.send({
+      embeds: [
+        {
+          title: "🌅 Wakeup Report",
+          color: 0x33aaff,
+          fields: [
+            {
+              name: "Initialisation time",
+              value: `${client.uptime}ms`,
+            },
+            {
+              name: "Guilds",
+              value: client.guilds.cache.size.toString(),
+            },
+          ],
+        },
+      ],
+    })
+  );
+}
 
 function monitorQueueHandler() {
   mongocluster

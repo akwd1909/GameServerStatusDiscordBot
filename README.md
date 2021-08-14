@@ -8,8 +8,6 @@ An open-source Discord bot that monitors game servers
 
 Click this link to add the bot to your Discord server: https://discord.com/api/oauth2/authorize?client_id=875818249726595103&permissions=76864&scope=bot
 
-The public bot currently uses Administrator permissions, but I'm working on making it more secure.
-
 ### Option 2: Run the bot yourself!
 
 I'd recommend using the Dockerfile included with this repo, but you can just use NPM to run the bot yourself. Check the .env file for the environment variables you need to set.

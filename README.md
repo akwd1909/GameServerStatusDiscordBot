@@ -44,3 +44,4 @@ This is an open-source project! Just use the [issue tracker](https://github.com/
 - [ ] Allow force-update monitors via reaction-collection
 - [ ] Command permissions
 - [ ] Prettify the code a bit
+- [ ] Come up with a better name... ;-;

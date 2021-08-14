@@ -1,6 +1,6 @@
 # GameServerStatusDiscordBot
 
-An open-source Discord bot that monitors game servers
+An open-source Discord bot that monitors game servers using [GameDig](https://github.com/gamedig/node-gamedig). Check out the official [games list](https://github.com/gamedig/node-gamedig#games-list) for supported protocols.
 
 ## Installation
 
@@ -10,7 +10,7 @@ Click this link to add the bot to your Discord server: https://discord.com/api/o
 
 ### Option 2: Run the bot yourself!
 
-I'd recommend using the Dockerfile included with this repo, but you can just use NPM to run the bot yourself. Check the .env file for the environment variables you need to set.
+I'd recommend using the Dockerfile included with this repo, but you can just use NPM to run the bot yourself. Check the `.env.example` file for the environment variables you need to set.
 
 ## Usage
 

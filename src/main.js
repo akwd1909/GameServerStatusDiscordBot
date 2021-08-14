@@ -4,8 +4,9 @@ import {
   MessageEmbed as DiscordMessageEmbed,
 } from "discord.js";
 import Gamedig from "gamedig";
-import GameData from "./gameData.js";
 import Mongo from "mongodb";
+import GameData from "./gameData.js";
+import Config from "./config.js";
 
 const client = new DiscordClient({
   intents: new DiscordIntents(["GUILDS", "GUILD_MESSAGES"]),
@@ -16,12 +17,14 @@ const mongocluster = await Mongo.MongoClient.connect(process.env.MONGO_URL, {
   useUnifiedTopology: true,
 });
 
+console.log(Config.monitorLimit);
+
 client.login(process.env.DISCORD_TOKEN);
 
 client.on("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!! 🚀`);
 
-  onWakeup();
+  if (!Config.suppressWakeup) onWakeup();
 
   updatePresenceWithServerCount();
 
@@ -48,34 +51,47 @@ client.on("messageCreate", async (message) => {
     switch (command) {
       case "monitor":
         (async () => {
-          let waitMessage = await message.channel.send({
-              content: "_Setting up monitor..._",
-            }),
-            query = await queryGameServer(args[0], args[1]);
-
-          if (query === "badgame")
-            return waitMessage.edit(`Invalid game: ${args[0]}`);
-
-          waitMessage.delete();
-
-          let monitorMessage = await message.channel.send({
-            embeds: [prettyQueryEmbedBuilder(query, args[0], args[1])],
-          });
-
-          await mongocluster
+          let monitorCount = await mongocluster
             .db(process.env.MONGO_DB)
             .collection("queue")
-            .insertOne({
-              type: "monitorUpdate",
-              channelId: monitorMessage.channel.id,
-              messageId: monitorMessage.id,
-              arguments: {
-                type: args[0],
-                host: args[1],
-              },
+            .find({ type: "monitorUpdate", guildId: message.guild.id })
+            .toArray();
+
+          if (monitorCount.length >= Config.monitorLimit) {
+            return message.reply(
+              `You can only have ${Config.monitorLimit} monitors active! Delete one of them and try again.`
+            );
+          } else {
+            let waitMessage = await message.channel.send({
+                content: "_Setting up monitor..._",
+              }),
+              query = await queryGameServer(args[0], args[1]);
+
+            if (query === "badgame")
+              return waitMessage.edit(`Invalid game: ${args[0]}`);
+
+            waitMessage.delete();
+
+            let monitorMessage = await message.channel.send({
+              embeds: [prettyQueryEmbedBuilder(query, args[0], args[1])],
             });
 
-          message.delete();
+            await mongocluster
+              .db(process.env.MONGO_DB)
+              .collection("queue")
+              .insertOne({
+                type: "monitorUpdate",
+                guildId: monitorMessage.guild.id,
+                channelId: monitorMessage.channel.id,
+                messageId: monitorMessage.id,
+                arguments: {
+                  type: args[0],
+                  host: args[1],
+                },
+              });
+
+            message.delete();
+          }
         })();
         break;
       case "query-raw":

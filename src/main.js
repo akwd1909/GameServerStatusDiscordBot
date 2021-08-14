@@ -17,8 +17,6 @@ const mongocluster = await Mongo.MongoClient.connect(process.env.MONGO_URL, {
   useUnifiedTopology: true,
 });
 
-console.log(Config.monitorLimit);
-
 client.login(process.env.DISCORD_TOKEN);
 
 client.on("ready", async () => {

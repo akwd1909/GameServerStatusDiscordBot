@@ -45,3 +45,4 @@ This is an open-source project! Just use the [issue tracker](https://github.com/
 - [ ] Command permissions
 - [ ] Prettify the code a bit
 - [ ] Come up with a better name... ;-;
+- [ ] Make it scalable

@@ -111,8 +111,8 @@ async function doMonitorCommand(message, type, host) {
       `You can only have ${Config.monitorLimit} monitors active! Delete one of them and try again.`
     );
   } else {
-    message
-      .reply({
+    message.channel
+      .send({
         content: "_Setting up monitor..._",
       })
       .then(async (message) => {

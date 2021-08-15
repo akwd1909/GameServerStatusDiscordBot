@@ -12,30 +12,37 @@ const client = new DiscordClient({
   intents: new DiscordIntents(["GUILDS", "GUILD_MESSAGES"]),
 });
 
+// eslint doesn't like this but it's a supported use case: https://v8.dev/features/top-level-await#resource-initialization
 const mongocluster = await Mongo.MongoClient.connect(process.env.MONGO_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
-client.login(process.env.DISCORD_TOKEN);
-
 client.on("ready", async () => {
-  console.log(`Logged in as ${client.user.tag}!! 🚀`);
+  console.log(`Logged in as ${client.user.tag}, initialising...`);
 
-  if (!Config.suppressWakeup) onWakeup();
-
-  updatePresenceWithServerCount();
-
-  setInterval(() => {
+  // wait for the meat to rest before serving
+  await (async () => {
     updatePresenceWithServerCount();
-    monitorQueueHandler();
-  }, 2000);
+
+    setInterval(() => {
+      updatePresenceWithServerCount();
+      monitorQueueHandler();
+    }, Config.monitorPollingInterval);
+  })();
+
+  if (!Config.suppressWakeup) sendWakeupReport();
+
+  console.log("We have liftoff!! 🚀");
 });
 
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  if (message.content.startsWith("!") && !message.content.startsWith("! ")) {
+  if (
+    message.content.startsWith(Config.prefix) &&
+    !message.content.startsWith(Config.prefix + " ") // we no like leading spaces
+  ) {
     if (message.guild === null)
       return message.reply("Commands don't work in DMs!");
 
@@ -48,83 +55,13 @@ client.on("messageCreate", async (message) => {
 
     switch (command) {
       case "monitor":
-        (async () => {
-          let monitorCount = await mongocluster
-            .db(process.env.MONGO_DB)
-            .collection("queue")
-            .find({ type: "monitorUpdate", guildId: message.guild.id })
-            .toArray();
-
-          if (monitorCount.length >= Config.monitorLimit) {
-            return message.reply(
-              `You can only have ${Config.monitorLimit} monitors active! Delete one of them and try again.`
-            );
-          } else {
-            let waitMessage = await message.channel.send({
-                content: "_Setting up monitor..._",
-              }),
-              query = await queryGameServer(args[0], args[1]);
-
-            if (query === "badgame")
-              return waitMessage.edit(`Invalid game: ${args[0]}`);
-
-            waitMessage.delete();
-
-            let monitorMessage = await message.channel.send({
-              embeds: [prettyQueryEmbedBuilder(query, args[0], args[1])],
-            });
-
-            await mongocluster
-              .db(process.env.MONGO_DB)
-              .collection("queue")
-              .insertOne({
-                type: "monitorUpdate",
-                guildId: monitorMessage.guild.id,
-                channelId: monitorMessage.channel.id,
-                messageId: monitorMessage.id,
-                arguments: {
-                  type: args[0],
-                  host: args[1],
-                },
-              });
-
-            message.delete();
-          }
-        })();
+        doMonitorCommand(message, ...args);
         break;
       case "query-raw":
-        (async () => {
-          let waitMessage = await message.reply({
-              content: "_Querying..._",
-            }),
-            query = await queryGameServer(args[0], args[1]);
-
-          if (query === "badgame")
-            return waitMessage.edit(`Invalid game: ${args[0]}`);
-
-          waitMessage.edit({
-            content:
-              "```json\n" +
-              JSON.stringify(query, null, 2).substring(0, 1500) +
-              "\n```",
-          });
-        })();
+        doQueryRawCommand(message, ...args);
         break;
       case "query-pretty":
-        (async () => {
-          let waitMessage = await message.reply({
-              content: "_Querying..._",
-            }),
-            query = await queryGameServer(args[0], args[1]);
-
-          if (query === "badgame")
-            return waitMessage.edit(`Invalid game: ${args[0]}`);
-
-          waitMessage.edit({
-            content: "**Query results:**",
-            embeds: [prettyQueryEmbedBuilder(query, args[0], args[1])],
-          });
-        })();
+        doQueryPrettyCommand(message, ...args);
         break;
       case "ping":
         message.react("🏓");
@@ -138,7 +75,146 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-function onWakeup() {
+client.login(process.env.DISCORD_TOKEN);
+
+async function doMonitorCommand(message, type, host) {
+  let monitorCount = await mongocluster
+    .db(process.env.MONGO_DB)
+    .collection("queue")
+    .find({ type: "monitorUpdate", guildId: message.guild.id })
+    .toArray();
+
+  if (monitorCount.length >= Config.monitorLimit) {
+    return message.reply(
+      `You can only have ${Config.monitorLimit} monitors active! Delete one of them and try again.`
+    );
+  } else {
+    message
+      .reply({
+        content: "_Setting up monitor..._",
+      })
+      .then(async (message) => {
+        try {
+          let query;
+
+          try {
+            query = await queryGameServer(type, host);
+          } catch (error) {
+            query = 0;
+          }
+
+          message
+            .edit({
+              content: ".",
+              embeds: [prettyQueryEmbedBuilder(query, type, host)],
+            })
+            .then((message) => {
+              mongocluster
+                .db(process.env.MONGO_DB)
+                .collection("queue")
+                .insertOne({
+                  type: "monitorUpdate",
+                  guildId: message.guild.id,
+                  channelId: message.channel.id,
+                  messageId: message.id,
+                  arguments: {
+                    type: type,
+                    host: host,
+                  },
+                });
+            });
+        } catch (error) {
+          queryErrorHandler(message, error);
+        }
+      })
+      .catch(caughtErrorHandler);
+  }
+}
+
+function doQueryRawCommand(message, type, host) {
+  message
+    .reply({
+      content: "_Querying..._",
+    })
+    .then(async (message) => {
+      try {
+        message.edit({
+          content:
+            "```json\n" +
+            JSON.stringify(
+              await queryGameServer(type, host),
+              null,
+              2
+            ).substring(0, 1500) +
+            "\n```",
+        });
+      } catch (error) {
+        queryErrorHandler(message, error);
+      }
+    })
+    .catch(caughtErrorHandler);
+}
+
+function doQueryPrettyCommand(message, type, host) {
+  message
+    .reply({
+      content: "_Querying..._",
+    })
+    .then(async (message) => {
+      try {
+        message.edit({
+          content: "**Query results:**",
+          embeds: [
+            prettyQueryEmbedBuilder(
+              await queryGameServer(type, host),
+              type,
+              host
+            ),
+          ],
+        });
+      } catch (error) {
+        queryErrorHandler(message, error);
+      }
+    })
+    .catch(caughtErrorHandler);
+}
+
+function queryErrorHandler(message, error) {
+  if (error.message.includes("Invalid game"))
+    return message.edit({
+      content:
+        "That's not a valid game server type! Please check the list of valid values here: https://github.com/gamedig/node-gamedig#games-list",
+    });
+
+  if (
+    error.message.includes("Failed all") &&
+    error.message.includes("attempts")
+  )
+    return message.edit({
+      content:
+        "Looks like the server is offline, the hostname is invalid, or the wrong game server protocol was selected!",
+    });
+
+  message
+    .edit({
+      content:
+        "Something went wrong! 😰\nBut don't worry, I've sent an error report to my development team.",
+    })
+    .then(caughtErrorHandler(error));
+}
+
+function caughtErrorHandler(error) {
+  console.error(error);
+
+  if (!Config.suppressErrorReporting)
+    client.application
+      .fetch()
+      .then((application) =>
+        application.owner.send("I errored! 😰\n```json" + error + "\n```")
+      );
+}
+
+function sendWakeupReport() {
   client.application.fetch().then((application) =>
     application.owner.send({
       embeds: [
@@ -176,10 +252,16 @@ function monitorQueueHandler() {
               .fetch(monitorTask.messageId)
               .then(async (message) => {
                 try {
-                  let query = await queryGameServer(
-                    monitorTask.arguments.type,
-                    monitorTask.arguments.host
-                  );
+                  let query;
+
+                  try {
+                    query = await queryGameServer(
+                      monitorTask.arguments.type,
+                      monitorTask.arguments.host
+                    );
+                  } catch (error) {
+                    query = 0;
+                  }
 
                   message.edit({
                     embeds: [
@@ -263,16 +345,8 @@ function prettyQueryEmbedBuilder(query, type, host) {
 }
 
 async function queryGameServer(type, host) {
-  let state = 0;
-
-  try {
-    state = await Gamedig.query({
-      type: type,
-      host: host,
-    });
-  } catch (error) {
-    if (error.message.includes("Invalid game")) state = "badgame";
-  }
-
-  return state;
+  return await Gamedig.query({
+    type: type,
+    host: host,
+  });
 }

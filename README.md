@@ -6,7 +6,7 @@ An open-source Discord bot that monitors game servers using [GameDig](https://gi
 
 ### Option 1: Use the public bot instance
 
-Click this link to add the bot to your Discord server: https://discord.com/api/oauth2/authorize?client_id=875818249726595103&permissions=76864&scope=bot
+Click this link to add the bot to your Discord server: https://discord.com/api/oauth2/authorize?client_id=875818249726595103&permissions=3072&scope=bot
 
 ### Option 2: Run the bot yourself!
 

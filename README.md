@@ -22,6 +22,8 @@ I'd recommend using the Dockerfile included with this repo, but you can just use
 | `!query-pretty <type> <host>` | Returns a one-time embed                      | `!query-pretty minecraft mc.hypixel.net` |
 | `!monitor <type> <host>`      | Returns a monitor embed                       | `!monitor minecraft mc.hypixel.net`      |
 
+You can get the "type" value from the GameDig's [games list](https://github.com/gamedig/node-gamedig#games-list).
+
 ## Development
 
 This is an open-source project! Just use the [issue tracker](https://github.com/zuedev/GameServerStatusDiscordBot/issues) on GitHub to report bugs or suggest improvements. Feel free to fork and send pull requests, too! 😎

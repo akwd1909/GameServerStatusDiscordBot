@@ -368,7 +368,7 @@ function prettyQueryEmbedBuilder(query, type, host) {
   return embed;
 }
 
-async function queryGameServer(type, host, port) {
+async function queryGameServer(type, host) {
   let query = {
     type: type,
     host: host,

@@ -368,9 +368,17 @@ function prettyQueryEmbedBuilder(query, type, host) {
   return embed;
 }
 
-async function queryGameServer(type, host) {
-  return await Gamedig.query({
+async function queryGameServer(type, host, port) {
+  let query = {
     type: type,
     host: host,
-  });
+  };
+
+  if (query.host.includes(":")) {
+    let split = host.split(":");
+    query.host = split[0];
+    query.port = split[1];
+  }
+
+  return await Gamedig.query(query);
 }

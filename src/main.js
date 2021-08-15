@@ -191,12 +191,16 @@ function monitorQueueHandler() {
                     ],
                   });
                 } catch (error) {
-                  deleteTaskByMessageId(monitorTask.messageId);
+                  try {
+                    deleteTaskByMessageId(monitorTask.messageId);
+                  } catch (error) {}
                 }
               })
           )
           .catch((error) => {
-            deleteTaskByMessageId(monitorTask.messageId);
+            try {
+              deleteTaskByMessageId(monitorTask.messageId);
+            } catch (error) {}
           });
       })
     );

@@ -36,6 +36,28 @@ client.on("ready", async () => {
   console.log("We have liftoff!! 🚀");
 });
 
+client.on("guildCreate", (guild) => {
+  sendMessageToApplicationOwner("I joined a new guild! :O");
+
+  guild
+    .fetchOwner()
+    .then((owner) =>
+      owner.send(
+        `**Hello, ${owner.displayName}!** 👋` +
+          "\n\n" +
+          "Thank you for adding my bot to your server. I hope you enjoy using it as much as I did making it. If you haven't already, I'd recommend reading the `README.md` in the bot's repository linked below." +
+          "\n\n" +
+          "If you have any issues running the bot, please feel free to join our Discord and ask for help or use the issue tracker on GitHub also in the repository." +
+          "\n\n" +
+          "**Repository:** https://github.com/zuedev/GameServerStatusDiscordBot" +
+          "\n" +
+          "**Discord:** https://unnamed.group/discord" +
+          "\n\n" +
+          "_~ Alex_"
+      )
+    );
+});
+
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
@@ -203,20 +225,22 @@ function queryErrorHandler(message, error) {
     .then(caughtErrorHandler(error));
 }
 
+function sendMessageToApplicationOwner(options) {
+  client.application
+    .fetch()
+    .then((application) => application.owner.send(options));
+}
+
 function caughtErrorHandler(error) {
   console.error(error);
 
   if (!Config.suppressErrorReporting)
-    client.application
-      .fetch()
-      .then((application) =>
-        application.owner.send("I errored! 😰\n```json" + error + "\n```")
-      );
+    sendMessageToApplicationOwner("I errored! 😰\n```json" + error + "\n```");
 }
 
 function sendWakeupReport() {
   client.application.fetch().then((application) =>
-    application.owner.send({
+    sendMessageToApplicationOwner({
       embeds: [
         {
           title: "🌅 Wakeup Report",

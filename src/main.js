@@ -125,7 +125,7 @@ async function doMonitorCommand(message, type, host) {
 
   if (monitorCount.length >= Config.monitorLimit) {
     return message.reply(
-      `You can only have ${Config.monitorLimit} monitors active! Delete one of them and try again.`
+      `You can only have ${Config.monitorLimit} monitors active! Delete one of them and try again.\n\nIf needed, please use the GitHub to request more monitor slots: https://github.com/zuedev/GameServerStatusDiscordBot/issues/new?assignees=zuedev&labels=public-instance-request&template=public-instance-monitor-increase-request.md&title=Public+Instance+Monitor+Increase+Request`
     );
   } else {
     message.channel

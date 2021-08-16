@@ -58,6 +58,10 @@ client.on("guildCreate", (guild) => {
     );
 });
 
+client.on("guildDelete", (guild) => {
+  sendMessageToApplicationOwner(`I left a guild! ;(\n${guild.name}`);
+});
+
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 

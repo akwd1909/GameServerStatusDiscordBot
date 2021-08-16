@@ -135,8 +135,6 @@ async function doMonitorCommand(message, type, host) {
     })
     .toArray();
 
-  console.log(monitorAddLock);
-
   if (monitorAddLock.length > 1) {
     return message
       .reply(

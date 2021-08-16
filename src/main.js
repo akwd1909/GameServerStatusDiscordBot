@@ -121,6 +121,30 @@ client.on("error", (error) => {
 client.login(process.env.DISCORD_TOKEN);
 
 async function doMonitorCommand(message, type, host) {
+  await mongocluster.db(process.env.MONGO_DB).collection("locks").insertOne({
+    type: "monitorAdd",
+    guildId: message.guild.id,
+  });
+
+  let monitorAddLock = await mongocluster
+    .db(process.env.MONGO_DB)
+    .collection("locks")
+    .find({
+      type: "monitorAdd",
+      guildId: message.guild.id,
+    })
+    .toArray();
+
+  console.log(monitorAddLock);
+
+  if (monitorAddLock.length > 1) {
+    return message
+      .reply(
+        "There is already a monitor being set up for this server! Please try again in a moment."
+      )
+      .then(deleteMonitorAddLock(message.guild.id));
+  }
+
   let monitorCount = await mongocluster
     .db(process.env.MONGO_DB)
     .collection("queue")
@@ -128,13 +152,15 @@ async function doMonitorCommand(message, type, host) {
     .toArray();
 
   if (monitorCount.length >= Config.monitorLimit) {
-    return message.reply(
-      `You currently have ${monitorCount.length}/${
-        Config.monitorLimit
-      } monitors active! Delete ${
-        Config.monitorLimit - monitorCount.length + 1
-      } of them and try again.\n\nIf needed, please use the GitHub to request more monitor slots: <https://github.com/zuedev/GameServerStatusDiscordBot/issues/new?assignees=zuedev&labels=public-instance-request&template=public-instance-monitor-increase-request.md&title=Public+Instance+Monitor+Increase+Request>`
-    );
+    return message
+      .reply(
+        `You currently have ${monitorCount.length}/${
+          Config.monitorLimit
+        } monitors active! Delete ${
+          Config.monitorLimit - monitorCount.length + 1
+        } of them and try again.\n\nIf needed, please use the GitHub to request more monitor slots: <https://github.com/zuedev/GameServerStatusDiscordBot/issues/new?assignees=zuedev&labels=public-instance-request&template=public-instance-monitor-increase-request.md&title=Public+Instance+Monitor+Increase+Request>`
+      )
+      .then(deleteMonitorAddLock(message.guild.id));
   } else {
     message.channel
       .send({
@@ -168,7 +194,8 @@ async function doMonitorCommand(message, type, host) {
                     type: type,
                     host: host,
                   },
-                });
+                })
+                .then(deleteMonitorAddLock(message.guild.id));
             });
         } catch (error) {
           queryErrorHandler(message, error);
@@ -176,6 +203,13 @@ async function doMonitorCommand(message, type, host) {
       })
       .catch(caughtErrorHandler);
   }
+}
+
+function deleteMonitorAddLock(guildId) {
+  mongocluster.db(process.env.MONGO_DB).collection("locks").deleteOne({
+    type: "monitorAdd",
+    guildId: guildId,
+  });
 }
 
 function doQueryRawCommand(message, type, host) {

@@ -2,8 +2,8 @@
 name: Public Instance Monitor Increase Request
 about: Request more monitor slots for use with the public instance of the bot
 title: ''
-labels: ''
-assignees: ''
+labels: public-instance-request
+assignees: zuedev
 
 ---
 
@@ -13,6 +13,9 @@ Game server monitoring causes significantly more network strain on our servers t
 However, we are able to manually increase this limit following a review of legitimacy performed by a human being. This process will be mainly automated soon, but for now it is done manually.
 
 In order to receive an increase, please submit this issue with the following information:
+  - Your Discord tag (username#1234)
   - A valid invite link to your Discord server
   - The amount of extra server monitors you need
+
+Enter this information after the arrow below on the next line! :>
 -->

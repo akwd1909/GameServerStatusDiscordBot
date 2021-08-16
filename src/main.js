@@ -97,6 +97,10 @@ client.on("messageCreate", async (message) => {
   }
 });
 
+client.on("error", (error) => {
+  console.error(error);
+});
+
 client.login(process.env.DISCORD_TOKEN);
 
 async function doMonitorCommand(message, type, host) {

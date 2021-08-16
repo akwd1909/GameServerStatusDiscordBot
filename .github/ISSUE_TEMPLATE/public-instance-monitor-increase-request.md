@@ -1,7 +1,7 @@
 ---
 name: Public Instance Monitor Increase Request
 about: Request more monitor slots for use with the public instance of the bot
-title: ''
+title: Public Instance Monitor Increase Request
 labels: public-instance-request
 assignees: zuedev
 

@@ -77,12 +77,15 @@ client.on("messageCreate", async (message) => {
 
     switch (command) {
       case "monitor":
+        if (args.length != 2) return message.reply("You need two arguments!");
         doMonitorCommand(message, ...args);
         break;
       case "query-raw":
+        if (args.length != 2) return message.reply("You need two arguments!");
         doQueryRawCommand(message, ...args);
         break;
       case "query-pretty":
+        if (args.length != 2) return message.reply("You need two arguments!");
         doQueryPrettyCommand(message, ...args);
         break;
       case "ping":

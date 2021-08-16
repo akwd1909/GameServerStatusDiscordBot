@@ -88,6 +88,16 @@ client.on("messageCreate", async (message) => {
         if (args.length != 2) return message.reply("You need two arguments!");
         doQueryPrettyCommand(message, ...args);
         break;
+      case "owner-guilds":
+        client.application.fetch().then((application) => {
+          if (message.author.id !== application.owner.id)
+            return message.reply("You need to be the application owner!");
+
+          const guilds = client.guilds.cache.map((guild) => guild.name);
+
+          message.reply(`Guilds: ${guilds.join(", ")}`);
+        });
+        break;
       case "ping":
         message.react("🏓");
         message.reply("Pong!");

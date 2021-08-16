@@ -37,7 +37,7 @@ client.on("ready", async () => {
 });
 
 client.on("guildCreate", (guild) => {
-  sendMessageToApplicationOwner("I joined a new guild! :O");
+  sendMessageToApplicationOwner(`I joined a new guild! :O\n${guild.name}`);
 
   guild
     .fetchOwner()

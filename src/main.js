@@ -49,9 +49,9 @@ client.on("guildCreate", (guild) => {
           "\n\n" +
           "If you have any issues running the bot, please feel free to join our Discord and ask for help or use the issue tracker on GitHub also in the repository." +
           "\n\n" +
-          "**Repository:** https://github.com/zuedev/GameServerStatusDiscordBot" +
+          "**Repository:** <https://github.com/zuedev/GameServerStatusDiscordBot>" +
           "\n" +
-          "**Discord:** https://unnamed.group/discord" +
+          "**Discord:** <https://unnamed.group/discord>" +
           "\n\n" +
           "_~ Alex_"
       )
@@ -133,7 +133,7 @@ async function doMonitorCommand(message, type, host) {
         Config.monitorLimit
       } monitors active! Delete ${
         Config.monitorLimit - monitorCount.length + 1
-      } of them and try again.\n\nIf needed, please use the GitHub to request more monitor slots: https://github.com/zuedev/GameServerStatusDiscordBot/issues/new?assignees=zuedev&labels=public-instance-request&template=public-instance-monitor-increase-request.md&title=Public+Instance+Monitor+Increase+Request`
+      } of them and try again.\n\nIf needed, please use the GitHub to request more monitor slots: <https://github.com/zuedev/GameServerStatusDiscordBot/issues/new?assignees=zuedev&labels=public-instance-request&template=public-instance-monitor-increase-request.md&title=Public+Instance+Monitor+Increase+Request>`
     );
   } else {
     message.channel
